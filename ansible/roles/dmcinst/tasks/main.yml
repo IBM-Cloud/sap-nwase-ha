@@ -1,0 +1,27 @@
+---
+- name: Generate DMC response file
+  template:
+      src: dmc_response_file.cfg
+      dest: "{{ dmc_response_file }}"
+
+- name: Install DMC
+  shell: "{{ asedb_kit }}/setup.bin -f {{ dmc_response_file }} -i silent"
+  become: true
+  become_user: "syb{{ sap_sid | lower }}"
+  become_flags: "-i"
+
+#Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
+- name: Copy SQL commands
+  copy:
+    src: unlock_sa.cfg
+    dest: /usr/sap/kit/unlock_sa.cfg
+    owner: "syb{{ sap_sid | lower }}"
+    group: sapsys
+    mode: 0775
+
+- name: Unlock sa user
+  shell: "isql -Usapsso -P{{ sap_main_password }} -S{{ sap_sid | upper }} -X -i/usr/sap/kit/unlock_sa.cfg"
+  become: true
+  become_user: "syb{{ sap_sid | lower }}"
+  become_flags: "-i"
+...

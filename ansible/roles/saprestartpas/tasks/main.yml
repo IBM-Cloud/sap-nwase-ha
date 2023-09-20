@@ -1,0 +1,8 @@
+---
+- name: Restart PAS instance
+  shell: "sapcontrol -nr {{ sap_ci_instance_number }} -function RestartInstance"
+  become: true
+  become_method: su
+  become_flags: "-"
+  become_user: "{{ sap_sid | lower }}adm"
+...

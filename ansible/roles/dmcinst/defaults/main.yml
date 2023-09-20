@@ -1,0 +1,4 @@
+---
+asedb_kit: "/usr/sap/kit/asedb/*/SYBASE_LINUX_X86_64"
+dmc_response_file: "/usr/sap/kit/dmc_response_file.txt"
+...

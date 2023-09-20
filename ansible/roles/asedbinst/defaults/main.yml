@@ -1,0 +1,7 @@
+---
+#Sapinst product-id
+sap_product_id: "NW_ABAP_DB:NW750.SYB.ABAPHA"
+
+#Target files location
+nwapp_kit: "/usr/sap/kit"
+...

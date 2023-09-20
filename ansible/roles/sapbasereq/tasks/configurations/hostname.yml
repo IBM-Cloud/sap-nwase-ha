@@ -1,0 +1,29 @@
+---
+#2718300 - Physical and Virtual hostname length limitations
+- name: Get short hostname
+  command: hostname -s
+  register: sap_short_hostname
+
+- name: Check if hostname has 13 or less characters as per SAP requirement
+  fail:
+    msg: "Hostname {{ sap_short_hostname.stdout }} has more than 13 characters"
+  when:  sap_short_hostname.stdout|length > 13
+
+- name: Disable ipv6 loopback address 
+  replace:
+    path: /etc/hosts
+    regexp: "(.*::1.*)"
+    replace: '#\1'
+
+- name: Enable hostname resolve to other nodes
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostname }}"
+  loop: 
+    - "{{ app_iphost1 }} {{ app_hostname1 }}.{{ domain_name }} {{ app_hostname1 }}"
+    - "{{ app_iphost2 }} {{ app_hostname2 }}.{{ domain_name }} {{ app_hostname2 }}"
+    - "{{ sybdb_iphost1 }} {{ sybdb_hostname1 }}.{{ domain_name }} {{ sybdb_hostname1 }}"
+    - "{{ sybdb_iphost2 }} {{ sybdb_hostname2 }}.{{ domain_name }} {{ sybdb_hostname2 }}"
+  loop_control:
+    loop_var: hostname
+...

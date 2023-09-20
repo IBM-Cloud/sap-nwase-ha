@@ -1,0 +1,33 @@
+---
+- name: Import required cluster packages
+  package:
+    state: present
+    name: "{{ cluster_required_packages }}"
+
+- name: Set the password for hacluster
+  user:
+    name: hacluster
+    update_password: always
+    password: "{{ ha_password | password_hash('sha512') }}"
+
+- name: Enable pacemaker service
+  systemd:
+    name: pcsd.service
+    state: started
+    enabled: yes
+
+- name: Configure resolv.conf
+  lineinfile:
+    path: /etc/resolv.conf
+    line: "search {{ domain_name }}"
+
+- name: Add the domain name to network interface config
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    line: "DOMAIN=\"{{ domain_name }}\""
+
+- name: Restart the network service
+  systemd:
+    name: NetworkManager.service
+    state: restarted
+...

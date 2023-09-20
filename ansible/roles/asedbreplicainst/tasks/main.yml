@@ -1,0 +1,64 @@
+---
+- name: Import install kit
+  include_tasks: "install_kit.yml"
+
+#ALB timeout workaround
+- name: Add virtual hostnames to /etc/hosts file
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {{ app_iphost1 }} {{ cname_ascs }} {{ cname_ascs }}.{{ domain_name }}
+      {{ app_iphost2 }} {{ cname_ers }} {{ cname_ers }}.{{ domain_name }}
+
+- name: Backup DEFAULT.PFL
+  copy:
+    src: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.PFL"
+    dest: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.PFL.OK"
+    remote_src: yes
+    owner: "{{ sidadm_uid }}"
+    group: "{{ sapsys_gid }}"
+
+- name: Workaround for sapinst replica DEFAULT.PFL
+  copy:
+    src: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.2.PFL"
+    dest: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.PFL"
+    remote_src: yes
+    owner: "{{ sidadm_uid }}"
+    group: "{{ sapsys_gid }}"
+
+- name: Create /usr/sap/lib directory
+  file:
+    path: /usr/sap/lib
+    state: directory
+    mode: 0775
+
+- name: Create symlink to compat library
+  file:
+    src: /opt/rh/SAP/lib64/compat-sap-c++-10.so
+    dest: /usr/sap/lib/libstdc++.so.6
+    state: link
+
+- name: Generate parameter file for sapinst
+  template:
+      src: sapinst.cfg
+      dest: "{{ nwapp_kit }}/inifile.params"
+
+- name: Start SAP ASE DB replication
+  shell: "{{ nwapp_kit }}/swpm/sapinst SAPINST_INPUT_PARAMETERS_URL={{ nwapp_kit }}/inifile.params SAPINST_EXECUTE_PRODUCT_ID={{ sap_product_id }} SAPINST_SKIP_DIALOGS=true SAPINST_START_GUISERVER=false"
+
+- name: Restore original DEFAULT.PFL
+  copy:
+    src: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.PFL.OK"
+    dest: "/sapmnt/{{ sap_sid|upper }}/profile/DEFAULT.PFL"
+    remote_src: yes
+    owner: "{{ sidadm_uid }}"
+    group: "{{ sapsys_gid }}"
+
+- name: Remove virtual hostnames to /etc/hosts file
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {{ app_iphost1 }} {{ cname_ascs }} {{ cname_ascs }}.{{ domain_name }}
+      {{ app_iphost2 }} {{ cname_ers }} {{ cname_ers }}.{{ domain_name }}
+    state: absent
+...

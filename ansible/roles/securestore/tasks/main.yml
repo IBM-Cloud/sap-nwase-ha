@@ -1,0 +1,15 @@
+---
+- name: Configure Secure Store
+  shell: "rsecssfx put DB_CONNECT/SYB/DR_USER DR_admin -plain"
+  become: true
+  become_method: su
+  become_flags: "-"
+  become_user: "{{ sap_sid | lower }}adm"
+
+- name: Configure Secure Store
+  shell: "rsecssfx put DB_CONNECT/SYB/DR_PASSWORD {{ sap_main_password }}"
+  become: true
+  become_method: su
+  become_flags: "-"
+  become_user: "{{ sap_sid | lower }}adm"
+...

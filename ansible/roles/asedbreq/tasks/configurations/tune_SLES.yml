@@ -1,0 +1,10 @@
+---
+- name: Select SAP-ASE profile for saptune
+  command: /usr/sbin/saptune solution apply SAP-ASE
+
+- name: Start and enable saptune service
+  service:
+    name: saptune
+    state: started
+    enabled: yes
+...

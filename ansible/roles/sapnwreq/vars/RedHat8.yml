@@ -1,0 +1,8 @@
+---
+nwapp_required_packages:
+
+nwapp_required_configurations:
+  - "kernel_RedHat8"
+  - "limits"
+  - "reboot"
+... 

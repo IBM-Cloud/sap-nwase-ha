@@ -1,0 +1,3 @@
+---
+hadr_profile_path: "/sapmnt/{{ sap_sid|upper }}/profile/SYBHA.PFL"
+...

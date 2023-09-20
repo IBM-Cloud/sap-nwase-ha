@@ -1,0 +1,6 @@
+---
+- name: Cleanup
+  file:
+    path: "{{ sap_kit }}"
+    state: absent
+...

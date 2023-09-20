@@ -1,0 +1,17 @@
+---
+#Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
+- name: Copy SQL commands
+  copy:
+    src: sap_tune_rs.cfg
+    dest: /usr/sap/kit/sap_tune_rs.cfg
+    owner: "syb{{ sap_sid | lower }}"
+    group: sapsys
+    mode: 0775
+
+- name: Execute SQL commands
+  shell: "isql -UDR_admin -P{{ sap_main_password }} -S{{ sybdb_hostname1 }}:4909 -X -i/usr/sap/kit/sap_tune_rs.cfg"
+  become: true
+  become_method: su
+  become_flags: "-"
+  become_user: "syb{{ sap_sid | lower }}"
+...
