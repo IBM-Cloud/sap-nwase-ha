@@ -8,10 +8,10 @@ resource "null_resource" "ansible-exec" {
      command = "sed -i  's/${var.sap_main_password}/xxxxxxxx/' terraform.tfstate"
     }
 
-# It is disabled for Dev purposes.
-#  provisioner "local-exec" {
-#       command = "sleep 20; rm -rf  ansible/*-vars.yml"
-#      }
+# Can be disabled for Dev purposes.
+  provisioner "local-exec" {
+       command = "sleep 20; rm -rf  ansible/*-vars.yml"
+      }
 }
 
 

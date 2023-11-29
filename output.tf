@@ -1,36 +1,42 @@
-output "SYBASE-DB-PRIVATE-IP-VSI1" {
+output "SYBASE_DB_PRIVATE_IP_VSI1" {
   value		= "${data.ibm_is_instance.db-vsi-1.primary_network_interface[0].primary_ip[0].address}"
 }
 
-output "SYBASE-DB-PRIVATE-IP-VSI2" {
+output "SYBASE_DB_PRIVATE_IP_VSI2" {
   value		= "${data.ibm_is_instance.db-vsi-2.primary_network_interface[0].primary_ip[0].address}"
 }
 
-output "SAP-APP-PRIVATE-IP-VSI1" {
+output "SAP_APP_PRIVATE_IP_VSI1" {
   value		= "${data.ibm_is_instance.app-vsi-1.primary_network_interface[0].primary_ip[0].address}"
 }
 
-output "SAP-APP-PRIVATE-IP-VSI2" {
+output "SAP_APP_PRIVATE_IP_VSI2" {
   value		= "${data.ibm_is_instance.app-vsi-2.primary_network_interface[0].primary_ip[0].address}"
 }
 
-output "DOMAIN-NAME" {
+output "DOMAIN_NAME" {
   value = var.DOMAIN_NAME
 }
 
-output FQDN-ALB-ASCS {
+output FQDN_ALB_ASCS {
  value		= "${data.ibm_is_lb.alb-ascs.hostname}" 
 }
 
-output FQDN-ALB-ERS {
+output FQDN_ALB_ERS {
  value		= "${data.ibm_is_lb.alb-ers.hostname}"
 }
 
-output "HADR_users_ports_used_on_both_nodes" {
-  description = "Users and ports used by Sybase HADR on both nodes"
+output "HADR_USERS_ON_BOTH_NODES" {
+  description = "Users for Sybase HADR on both nodes"
   value = {
     hadr_maintenance_user = "${var.SAP_SID}_maint"
     rma_admin_user        = "DR_admin"
+  }
+}
+
+output "HADR_USED_PORTS_ON_BOTH_NODES" {
+  description = "Ports used by Sybase HADR on both nodes"
+  value = {
     ase_server_port       = 4901
     backup_server_port    = 4902
     rma_tds_port          = 4909

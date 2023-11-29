@@ -3,53 +3,55 @@
 ##########################################################
 
 REGION = ""
-# Region for the VSI. Supported regions: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
+# The cloud region where to deploy the solution. Supported regions: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
 # Example: REGION = "eu-de"
 
 ZONE = ""
-# Availability zone for VSI. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
+# Availability zone for VSIs, in the REGION. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
 # Example: ZONE = "eu-de-2"
 
 DOMAIN_NAME = ""
-# The DOMAIN_NAME variable should contain at least one "." as a separator. It is a private domain and it is not reachable to and from the outside world.
-# The DOMAIN_NAME variable could be like a subdomain name. Example: staging.example.com
-# Domain names can only use letters, numbers, and hyphens.
-# Hyphens cannot be used at the beginning or end of the domain name.
-# You can't use a domain name that is already in use.
+# The Domain Name for DNS and ALB. 
+# The DOMAIN_NAME value should contain at least one "." as a separator. It is a private domain and is not reachable from the outside world.
+# The DOMAIN_NAME value could be like a subdomain name. Example: staging.example.com
+# Domain names can only contain letters, numbers and hyphens. Hyphens cannot be used at the beginning or end of the domain name.
+# Using a domain name that is already in use is not supported.
 # Domain names are not case sensitive.
 
 ASCS_VIRT_HOSTNAME = "sapascs"
-# ASCS Virtual hostname​
-# Default =  "sap($your_sap_sid)ascs"
+# ASCS Virtual Hostname
+# Default value: "sapascs"
+# When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sap<sap_sid>ascs"
 
-ERS_VIRT_HOSTNAME =  "sapers"
-# ERS Virtual Hostname​  
-# Default =  "sap($your_sap_sid)ascs"
+ERS_VIRT_HOSTNAME = "sapers"
+# ERS Virtual Hostname 
+# Default value: "sapers"
+# When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sap<sap_sid>ers"
 
 VPC = ""
-# EXISTING VPC, previously created by the user in the same region as the VSI. The list of available VPCs: https://cloud.ibm.com/vpc-ext/network/vpcs
+# The name of an EXISTING VPC. Must be in the same region as the solution to be deployed. The list of VPCs is available here: https://cloud.ibm.com/vpc-ext/network/vpcs.
 # Example: VPC = "ic4sap"
 
 SECURITY_GROUP = ""
-# EXISTING Security group, previously created by the user in the same VPC. It can be copied from the Bastion Server Deployment "OUTPUTS" at the end of "Apply plan successful" message.
+# The name of an EXISTING Security group for the same VPC. It can be found at the end of the Bastion Server deployment log, in "Outputs", before "Command finished successfully" message.
 # The list of available Security Groups: https://cloud.ibm.com/vpc-ext/network/securityGroups
 # Example: SECURITY_GROUP = "ic4sap-securitygroup"
 
 RESOURCE_GROUP = ""
-# EXISTING Resource group, previously created by the user. The list of available Resource Groups: https://cloud.ibm.com/account/resource-groups
+# The name of an EXISTING Resource Group, previously created by the user. The list of available Resource Groups: https://cloud.ibm.com/account/resource-groups
 # Example: RESOURCE_GROUP = "wes-automation"
 
 SUBNET = ""
-# EXISTING Subnet in the same region and zone as the VSI, previously created by the user. The list of available Subnets: https://cloud.ibm.com/vpc-ext/network/subnets
+# The name of an EXISTING Subnet, in the same VPC and ZONE where the VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. 
 # Example: SUBNET = "ic4sap-subnet"
 
-SSH_KEYS = []
-# List of SSH Keys UUIDs that are allowed to SSH as root to the VSI. The SSH Keys should be created for the same region as the VSI. The list of available SSH Keys UUIDs: https://cloud.ibm.com/vpc-ext/compute/sshKeys
+SSH_KEYS = [""]
+# List of SSH Keys UUIDs that are allowed to connect via SSH, as root, to the VSIs. Can contain one or more IDs. The SSH Keys should be created for the same region as the VSIs. The list of available SSH Keys UUIDs: https://cloud.ibm.com/vpc-ext/compute/sshKeys
 # Example: SSH_KEYS = ["r010-8f72b994-c17f-4500-af8f-d05680374t3c", "r011-8f72v884-c17f-4500-af8f-d05900374t3c"]
 
 ID_RSA_FILE_PATH = "ansible/id_rsa"
-# Input your existing id_rsa private key file path in OpenSSH format with 0600 permissions.
-# This private key it is used only during the terraform provisioning and it is recommended to be changed after the SAP deployment.
+# The path to an existing id_rsa private key file, with 0600 permissions. The private key must be in OpenSSH format.
+# This private key is used only during the provisioning and it is recommended to be changed after the SAP deployment.
 # It must contain the relative or absoute path from your Bastion.
 # Examples: "ansible/id_rsa_ase-syb_ha" , "~/.ssh/id_rsa_ase-syb_ha" , "/root/.ssh/id_rsa".
 
@@ -58,11 +60,9 @@ ID_RSA_FILE_PATH = "ansible/id_rsa"
 ##########################################################
 
 SHARE_PROFILE = "dp2"
-# Enter the profile for File Share storage.
+# The Storage Profile for the File Share
 # More details on https://cloud.ibm.com/docs/vpc?topic=vpc-file-storage-profiles&interface=ui#dp2-profile."
 
-# Enter Custom File Shares sizes for SAP mounts.
-# File shares sizes:
 USRSAP_AS1      = "20"
 USRSAP_AS2      = "20"
 USRSAP_SAPASCS  = "20"
@@ -70,56 +70,75 @@ USRSAP_SAPERS   = "20"
 USRSAP_SAPMNT   = "20"
 USRSAP_SAPSYS   = "20"
 USRSAP_TRANS    = "80"
+# File share sizes for SAP, in GB
 
 ##########################################################
 # DB VSI variables:
 ##########################################################
+
 DB_HOSTNAME_1 = "sybdb-1"
-# SYBASE Cluster VSI1 Hostname.
-# The Hostname for the DB VSI. The hostname should be up to 13 characters, as required by SAP
-# Default: DB_HOSTNAME_1 = "sybdb-$your_sap_sid-1"
+# The hostname for the primary SYBASE DB VSI server. The hostname should be up to 13 characters, as required by SAP.
+# Default value: "sybdb-1"
+# When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sybdb-<sap_sid>-1"
 
 DB_HOSTNAME_2 = "sybdb-2"
-# SYBASE Cluster VSI2 Hostname.
-# The Hostname for the DB VSI. The hostname should be up to 13 characters, as required by SAP
-# Default: DB_HOSTNAME_2 = "sybdb-$your_sap_sid-2"
+# The hostname for the standby (companion) SYBASE DB VSI server. The hostname should be up to 13 characters, as required by SAP.
+# Default value: "sybdb-2"
+# When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sybdb-<sap_sid>-2"
 
 DB_PROFILE = "bx2-4x16"
-# The DB VSI profile. Supported profiles for DB VSI: bx2-4x16. The list of available profiles: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui
+# The profile for the DB VSI. A list of profiles is available here: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui. 
+# For more information, check SAP Note 2927211: "SAP Applications on IBM Virtual Private Cloud".
 
 DB_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-4"
-# OS image for DB VSI. Supported OS images for DB VSIs: ibm-redhat-8-6-amd64-sap-hana-2, ibm-redhat-8-6-amd64-sap-hana-4
-# The list of available VPC Operating Systems supported by SAP: SAP note '2927211 - SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images
+# The OS image for the DB VSI. 
+# Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions.
+# Supported OS images: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. 
+# The list of available VPC Operating Systems supported by SAP: SAP note '2927211 - SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211
+# A list of images is available here: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images.
 # Example: DB_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-4" 
 
 ##########################################################
 # SAP APP VSI variables:
 ##########################################################
+
 APP_HOSTNAME_1 = "sapapp-1"
-# SAP Cluster VSI1 Hostname.
-# The Hostname for the SAP APP VSI. The hostname should be up to 13 characters, as required by SAP
-# Default: APP_HOSTNAME_1 = "sapapp-$your_sap_sid-1"
+# The hostname for APP VSI 1, in SAP APP Cluster. The hostname should be up to 13 characters. 
+# Default value: "sapapp-1"
+# When the default value is used, the virtual hostname will automatically be changed, based on <SAP_SID>, to "sapapp-<sap_sid>-1"
 
 APP_HOSTNAME_2 = "sapapp-2"
-# SAP Cluster VSI2 Hostname.
-# The Hostname for the SAP APP VSI. The hostname should be up to 13 characters, as required by SAP
-# Default: APP_HOSTNAME_2 = "sapapp-$your_sap_sid-2"
+# The hostname for APP VSI 2, in SAP APP Cluster. The hostname should be up to 13 characters. 
+# Default value: "sapapp-2"
+# When the default value is used, the virtual hostname will automatically be changed, based on <SAP_SID>, to "sapapp-<sap_sid>-2"
 
 APP_PROFILE = "bx2-4x16"
-# The APP VSI profile. Supported profiles: bx2-4x16. The list of available profiles: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui
+# The profile for the SAP APP VSIs. The list of available profiles: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles. 
+# For more information, check SAP Note 2927211: "SAP Applications on IBM Virtual Private Cloud"
 
 APP_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-4"
-# OS image for SAP APP VSI. Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-2, ibm-redhat-8-6-amd64-sap-hana-4
-# The list of available VPC Operating Systems supported by SAP: SAP note '2927211 - SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images
-# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-4" 
+# The OS image for SAP APP VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions. 
+# Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. 
+# The list of available VPC Operating Systems supported by SAP: SAP note '2927211-SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images"
+# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-7" 
+
+##########################################################
+# Activity Tracker variables:
+##########################################################
+
+ATR_NAME = ""
+# The name of the EXISTING Activity Tracker instance, in the same region chosen for SAP system deployment.
+# Example: ATR_NAME="Activity-Tracker-SAP-eu-de"
 
 ##########################################################
 # SAP system configuration
 ##########################################################
 
 SAP_SID = "NWD"
-# SAP System ID
-# Obs. This will be used  also as identification number across different HA name resources. Duplicates are not allowed.
+# The SAP system ID identifies the entire SAP system. 
+# Consists of three alphanumeric characters and the first character must be a letter. 
+# Does not include any of the reserved IDs listed in SAP Note 1979280
+# Obs. It will be used also as identification string across different HA name resources. Duplicates are not allowed.
 
 SAP_ASCS_INSTANCE_NUMBER = "00"
 # The central ABAP service instance number. Should follow the SAP rules for instance number naming.
