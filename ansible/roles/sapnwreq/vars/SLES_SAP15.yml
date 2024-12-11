@@ -1,8 +1,0 @@
----
-nwapp_required_packages:
-
-nwapp_required_configurations:
-  - "limits"
-  - "saptune"
-  - "reboot"
-... 

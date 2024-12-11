@@ -1,8 +1,8 @@
-# SAP Netweaver 7.x (ABAP) and ASE DB High Availability Deployment Automation
+#  Deployment Automation for SAP Netweaver 7.x (ABAP) and SAP ASE High Availability Multi-Zone or Single-Zone
 
 ## Description
 
-This automation solution is designed for the deployment of **SAP Netweaver 7.x (ABAP) and ASE DB High Availability solution** on top of **Red Hat Enterprise Linux 8.x**, in IBM CLoud Single-Zone, using IBM Cloud Schematics or Terraform CLI. The SAP solution will be deployed in an existing IBM Cloud Gen2 VPC, using a deployed [BASTION server (Deployment server) host with secure remote SSH access](https://github.com/IBM-Cloud/sap-bastion-setup), with secure remote SSH access.
+This automation solution is designed for the deployment of **SAP Netweaver 7.x (ABAP) and SAP ASE High Availability solution** on top of **Red Hat Enterprise Linux 8.x**, in IBM CLoud Multi-Zone or Single-Zone, using IBM Cloud Schematics or Terraform CLI. The SAP solution will be deployed in an existing IBM Cloud Gen2 VPC, using a deployed [BASTION server (Deployment server) host with secure remote SSH access](https://github.com/IBM-Cloud/sap-bastion-setup), with secure remote SSH access.
 
 The solution is based on Terraform and Ansible playbooks executed using IBM Cloud Schematics or Terraform CLI and it is implementing a 'reasonable' set of best practices for SAP VSI host configuration. The automation has support for the following versions: Terraform >= 1.5.7 and IBM Cloud provider for Terraform >= 1.57.0.
 
@@ -30,13 +30,27 @@ It contains:
 
 The following resources are created during the deployment:
 
-- two SAP VMs for ASCS/ERS HA running in a pacemaker cluster; SAP PAS is running on one of the cluster node and SAP AAS on the second node  
-- two ASE VMs, with Sybase HADR configuration and HSR Sync replication; the primary node is active and the secondary node runs in standby mode
+- two SAP VSIs for ASCS/ERS HA running in a pacemaker cluster; SAP PAS is running on one of the cluster node and SAP AAS on the second node  
+- two ASE VSIs, with Sybase HADR configuration and HSR Sync replication; the primary node is active and the secondary node runs in standby mode
 - two ALBs used for Virtual IP/hostname for ASCS and ERS.
 - one DNS service to map the virtual names for ASCS/ERS to ALB hostname
 - seven File shares to be used by SAP: `sapmnt/<SAP_SID>`, `/usr/sap/trans`, `/usr/sap/<SAP_SID>/SYS`, `/usr/sap/SYB/ASCSxx`,  `/usr/sap/SYB/ERSxx`, `/usr/sap/<SAP_SID>/Dxx`,  `/usr/sap/<SAP_SID>/Dxx`
 
-In order to track the events specific to the resources deployed by this solution, the [IBM Cloud Activity Tracker](https://cloud.ibm.com/docs/activity-tracker?topic=activity-tracker-getting-started#gs_ov) to be used should be specified. IBM Cloud Activity Tracker service collects and stores audit records for API calls made to resources that run in the IBM Cloud. It can be used to monitor the activity of your IBM Cloud account, investigate abnormal activity and critical actions, and comply with regulatory audit requirements. In addition, you can be alerted on actions as they happen.
+Notes:
+- For Network latency between VPC Zones and Regions please check the"VPC Network latency dashboards" using the link bellow and run your own measurement according with SAP note "500235 - Network Diagnosis with NIPING" to perform a latency check using SAP tool niping: https://cloud.ibm.com/docs/vpc?topic=vpc-network-latency-dashboard
+   - The results reported are as measured. There are no performance guarantees implied by these measurement. 
+   - These statistics provide visibility into latency between all regions and zones to help you plan the optimal selection for your cloud deployment and plan for scenarios, such as data residency and performance
+
+- ZONE_1 is the availability zone for DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs.
+- SUBNET_1  is an EXISTING Subnet, where DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs will be created. 
+- ZONE_2 is the availability zone for DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs.
+- SUBNET_2  is an EXISTING Subnet, where DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs will be created. 
+- If the values of the variables ZONE_1 and ZONE_2 are equal and the values of the variables SUBNET_1 and SUBNET_2 are also equal, an **SAP Single-Zone Deployment** will be executed in ZONE_1, SUBNET_1.
+- If the variable values from ZONE_1, SUBNET_1 are different than ZONE_2, SUBNET_2, an **SAP Multi-Zone Deployment** will be executed.
+- Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc.
+- The list of EXISTING Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets.
+- Each Subnet must have Internet access throught a  Public Gateway.
+
 
 ## Contents:
 
@@ -55,7 +69,7 @@ SAP Netweaver installation media used for this deployment is the default one for
 
 ## 1.2 Prerequisites
 
-- A Deployment Server (BASTION Server) in the same VPC should exist. For more information, see https://github.com/IBM-Cloud/sap-bastion-setup.
+- A Deployment Server (BASTION Server) in the same VPC must exist. For more information, see https://github.com/IBM-Cloud/sap-bastion-setup.
 - On the Deployment Server, download the SAP kits from the SAP Portal. Make note of the download locations. Ansible decompresses all of the archive kits.
 - Create or retrieve an IBM Cloud API key. The API key is used to authenticate with the IBM Cloud platform and to determine your permissions for IBM Cloud services.
 - Create or retrieve your SSH key ID. You need the 40-digit UUID for the SSH key, not the SSH key name.
@@ -66,10 +80,10 @@ Red Hat Enterprise Linux 8 for SAP HANA (amd64) is installed on the VSIs and SSH
 
 ASE DB VSI Disks:
 - 3 disks ["256" , "32" , "64"] GB, with 10 IOPS / GB - DATA
-- 1 x 40 GB disk - SWAP
+- 1 disk with 10 IOPS / GB - SWAP (the size depends on the OS profile used, for `bx2-4x16` the size will be 48 GB)
 
 SAP APPs VSI Disks:
-- 1x 40 GB disk with 10 IOPS / GB - SWAP
+- 1 disk with 10 IOPS / GB - SWAP (the size depends on the OS profile used, for `bx2-4x16` the size will be 48 GB)
 
 File Shares:
 - 6 x 20 GB file shares - DATA
@@ -108,9 +122,11 @@ IBMCLOUD_API_KEY | IBM Cloud API key (Sensitive* value). The IBM Cloud API Key c
 SSH_KEYS | List of IBM Cloud SSH Keys UUIDs that are allowed to connect via SSH, as root, to the VSI. The SSH Keys must be created for the same region as the Cloud resources for SAP. Can contain one or more IDs. The list of SSH Keys is available [here](https://cloud.ibm.com/vpc-ext/compute/sshKeys). <br /> Sample input:<br /> ["r010-57bfc315-f9e5-46bf-bf61-d87a24a9ce7a", "r010-3fcd9fe7-d4a7-41ce-8bb3-d96e936b2c7e"]
 RESOURCE_GROUP | The name of an EXISTING Resource Group for VSIs and Volumes resources. <br /> Default value: "Default". The list of Resource Groups is available [here](https://cloud.ibm.com/account/resource-groups).
 REGION | The cloud region where to deploy the solution. <br /> The regions and zones for VPC are available [here](https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc). <br /> Supported locations in IBM Cloud Schematics [here](https://cloud.ibm.com/docs/schematics?topic=schematics-locations).<br /> Sample value: eu-de.
-ZONE | The cloud availability zone where to deploy the solution, in the same VPC. <br /> The regions and zones for VPC are available [here](https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc). <br /> Supported locations in IBM Cloud Schematics [here](https://cloud.ibm.com/docs/schematics?topic=schematics-locations).<br /> Sample value: eu-de-2.
 VPC | The name of an EXISTING VPC. Must be in the same region as the solution to be deployed. The list of VPCs is available [here](https://cloud.ibm.com/vpc-ext/network/vpcs)
-SUBNET | The name of an EXISTING Subnet, in the same VPC, region and zone as the VSIs to be created. The list of Subnets is available [here](https://cloud.ibm.com/vpc-ext/network/subnets).
+ZONE_1| Availability zone for DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. 
+SUBNET_1 | The name of an EXISTING Subnet, in the same VPC, ZONE_1, where DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets
+ZONE_2| Availability zone for DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. OBS.: If the same value as for ZONE_1 is used, and the value for SUBNET_1 is the same with the value for SUBNET_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then an SAP Multizone deployment will be done.
+SUBNET_2 | The name of an EXISTING Subnet, in the same VPC, ZONE_2, where DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. OBS.: If the same value as for SUBNET_1 is used, and the value for ZONE_1 is the same with the value for ZONE_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then it an SAP Multizone deployment will be done.
 SECURITY_GROUP | The name of an EXISTING Security group for the same VPC. It can be found at the end of the Bastion Server deployment log, in "Outputs", before "Command finished successfully" message. The list of Security Groups is available [here](https://cloud.ibm.com/vpc-ext/network/securityGroups).
 DOMAIN_NAME | The DOMAIN_NAME variable should contain at least one "." as a separator. It is a private domain and it is not reachable from the outside world. The DOMAIN_NAME value could be like a subdomain name. Ex.: staging.example.com. You can't use a domain name that is already in use. The list with DNS resources can be searched [here](https://cloud.ibm.com/resources). <br />  Sample value:  "example.com". <br /> _(See Obs.*)_
 SHARE PROFILE | The Storage Profile for the File Share. More details on https://cloud.ibm.com/docs/vpc?topic=vpc-file-storage-profiles&interface=ui#dp2-profile." <br/> Default value:  SHARE_PROFILE = "dp2".
@@ -119,12 +135,6 @@ SHARE SIZES | Custom File Shares Sizes for SAP mounts. Sample values:  USRSAP_SA
 [DB/APP]-HOSTNAME | Hostname of SAP ASE DB/APP VSIs. Each hostname should be up to 13 characters as required by SAP.<br> For more information on rules regarding hostnames for SAP systems, check [SAP Note 611361: Hostnames of SAP ABAP Platform servers](https://launchpad.support.sap.com/#/notes/%20611361). <br> Default values: "sapapp-1/2" for APP_HOSTNAME_1/2 and "sybdb-1/2" for DB_HOSTNAME_1/2. When the default value is used, the virtual hostname will automatically be changed, based on <SAP_SID>, to "sybdb-<sap_sid>-1/2" for DB_HOSTNAME_1/2 and "sapapp-<sap_sid>-1/2" for APP_HOSTNAME_1/2.
 [DB/APP]-PROFILE | The profile used for the ASE DB/APP VSI. A list of profiles is available [here](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles).<br> For more information about supported DB/OS and IBM Gen 2 Virtual Server Instances (VSI), check [SAP Note 2927211: SAP Applications on IBM Virtual Private Cloud](https://launchpad.support.sap.com/#/notes/2927211)<br/> Default values: DB_PROFILE = "bx2-4x16" , APP_PROFILE = "bx2-4x16".
 [DB/APP]-IMAGE | The OS image used for the ASE DB/APP VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions. A list of images is available [here](https://cloud.ibm.com/docs/vpc?topic=vpc-about-images)  <br/> Default value: ibm-redhat-8-6-amd64-sap-hana-4"
-
-**Activity Tracker input parameters:**
-
-Parameter | Description
-----------|------------
-ATR_NAME | The name of the EXISTING Activity Tracker instance, in the same region chosen for SAP system deployment. The list of available Activity Tracker is available [here](https://cloud.ibm.com/observe/activitytracker)
 
 **SAP input parameters:**
 
@@ -143,7 +153,7 @@ KIT_IGSEXE_FILE | Path to IGS archive (SAR) | As downloaded from SAP Support Por
 KIT_IGSHELPER_FILE | Path to IGS Helper archive (SAR) | As downloaded from SAP Support Portal.
 KIT_SAPHOSTAGENT_FILE | Path to SAP Host Agent archive (SAR) | As downloaded from SAP Support Portal.
 KIT_ASE_FILE | Path to ASE DB installation archive (ZIP) | As downloaded from SAP Support Portal.
-KIT_EXPORT_DIR | Path to Netweaver Installation Export dir | The archives downloaded from SAP Support Portal should be present in this path.
+KIT_NWABAP_EXPORT_FILE | Path to Netweaver Installation Export ZIP file | The archives downloaded from SAP Support Portal should be present in this path.
  
  **Obs***: <br />
 
@@ -154,10 +164,10 @@ KIT_EXPORT_DIR | Path to Netweaver Installation Export dir | The archives downlo
 
 Parameter | Description | Requirements
 ----------|-------------|-------------
-SAP_MAIN_PASSWORD | Common password for all users that are created during the installation | <ul><li>It must be 8 to 14 characters long</li><li>It must contain at least one digit (0-9) and one uppercase letter</li><li> It must not contain \ (backslash) and " (double quote)</li></ul>
-HA_PASSWORD | HA cluster password | <ul><li>It must be 8 to 14 characters long</li><li>It must contain at least one digit (0-9)</li><li>It must not contain \ (backslash) and " (double quote)</li></ul>
+SAP_MAIN_PASSWORD | Common password for all users that are created during the installation | <ul><li>It must be 15 to 30 characters long<li>It must contain at least one digit (0-9)</li><li>It must contain at least one lowercase letter (a-z)</li><li>It must contain at least one uppercase letter (A-Z)</li><li>It may contain one of the following special characters: !, #, $, &, , +, ,, -, ., /, :, =>, @, ^, _, |, ~.</li><li>It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z).</li></ul>
+HA_PASSWORD | HA cluster password | <ul><li>It must be 15 to 30 characters long<li>It must contain at least one digit (0-9)</li><li>It must contain at least one lowercase letter (a-z)</li><li>It must contain at least one uppercase letter (A-Z)</li><li>It must contain at least one of the following special characters: !, #, $, %, &, (, ), *, +, ,, -, ., /, :, =, >, @, [, ], ^, _, {, |, }, ~.</li><li>It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z).</li></ul>
 
-- The following parameters should have the same values as the ones set for the BASTION server: REGION, ZONE, VPC, SUBNET, SECURITYGROUP.
+- The following parameters should have the same values as the ones set for the BASTION server: REGION, ZONES, VPC, SUBNET, SECURITYGROUP.
 - **DOMAIN_NAME** variable rules:
   -  it should contain at least one "." as a separator. It is a private domain and it is not reacheable to and from the outside world.
   -  it could be like a subdomain name. Ex.: staging.example.com
@@ -186,26 +196,24 @@ srs_port | 4905
 
 Component | Version | Filename
 ----------|-------------|-------------
-SOFTWARE PROVISIONING MGR | 1.0 SP31 PL 7 | SWPM10SP31_7-20009701.SAR
-SOFTWARE PROVISIONING MGR | 1.0 SP38 PL 0 | SWPM10SP38_0-20009701.SAR
-SAP KERNEL | 7.53 64-BIT UNICODE PL 1200| SAPEXE_1200-80002573.SAR SAPEXEDB_1200-80002616.SAR
-SAP KERNEL | 7.54 64-BIT UNICODE PL 200 | SAPEXE_200-80007612.SAR SAPEXEDB_200-80007655.SAR
-SAP IGS | 7.53 PL 15 | igsexe_15-80003187.sar
-SAP IGS | 7.54 PL 2  | igsexe_2-80007786.sar
+SOFTWARE PROVISIONING MGR | 1.0 SP42 PL 1 | SWPM10SP42_1-20009701.SAR
+SAPCAR | 7.53 PL 1300 | SAPCAR_1300-70007716.EXE
+SAP KERNEL | 7.54 64-BIT UNICODE PL 400 | SAPEXE_400-80007612.SAR SAPEXEDB_400-80007655.SAR
+SAP IGS | 7.54 PL 4  | igsexe_4-80007786.sar
 SAP IGS HELPER | PL 17 | igshelper_17-10010245.sar
-SAP HOST AGENT | 7.22 SP61 | SAPHOSTAGENT61_61-80004822.SAR
-SAP ASE | 16.0.04.04 | RDBMS 51056521_1
+SAP HOST AGENT | 7.22 SP65 | SAPHOSTAGENT65_65-80004822.SAR
+SAP ASE | 16.0.04.06 | 51057961_1.ZIP
 
 **OS images validated for this solution:**
 
 OS version | Image | Role
 -----------|-----------|-----------
-Red Hat Enterprise Linux 8.6 for SAP HANA (amd64) | ibm-redhat-8-6-amd64-sap-hana-4 | APP/DB
-Red Hat Enterprise Linux 8.6 for SAP HANA (amd64) | ibm-redhat-8-4-amd64-sap-hana-7 | APP/DB
+Red Hat Enterprise Linux 8.6 for SAP HANA (amd64) | ibm-redhat-8-6-amd64-sap-hana-6 | APP/DB
+Red Hat Enterprise Linux 8.4 for SAP HANA (amd64) | ibm-redhat-8-4-amd64-sap-hana-10 | APP/DB
 
 **Terraform version used to validate this solution:**
 
-The deployment was validated for Terraform 1.5.7
+The deployment was validated for Terraform 1.5.7 and Terraform 1.9.2
 
 ## 2.1 Executing the deployment of **HA SAP Netweaver and ASE DB installation** in GUI (Schematics)
 
@@ -277,15 +285,11 @@ The `input.auto.tfvars` file must be used to make the desired configuration, as 
 # General VPC variables:
 ##########################################################
 
-REGION = "eu-de"
+REGION = ""
 # The cloud region where to deploy the solution. Supported regions: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
 # Example: REGION = "eu-de"
 
-ZONE = "eu-de-2"
-# Availability zone for VSIs, in the REGION. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
-# Example: ZONE = "eu-de-2"
-
-DOMAIN_NAME = "production.example.com"
+DOMAIN_NAME = ""
 # The Domain Name for DNS and ALB. 
 # The DOMAIN_NAME value should contain at least one "." as a separator. It is a private domain and is not reachable from the outside world.
 # The DOMAIN_NAME value could be like a subdomain name. Example: staging.example.com
@@ -298,31 +302,45 @@ ASCS_VIRT_HOSTNAME = "sapascs"
 # Default value: "sapascs"
 # When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sap<sap_sid>ascs"
 
-ERS_VIRT_HOSTNAME =  "sapers"
+ERS_VIRT_HOSTNAME = "sapers"
 # ERS Virtual Hostname 
 # Default value: "sapers"
 # When the default value is used, the virtual hostname will automatically be changed based on <SAP_SID> to "sap<sap_sid>ers"
 
-VPC = "ic4sap"
+VPC = ""
 # The name of an EXISTING VPC. Must be in the same region as the solution to be deployed. The list of VPCs is available here: https://cloud.ibm.com/vpc-ext/network/vpcs.
 # Example: VPC = "ic4sap"
 
-SECURITY_GROUP = "ic4sap-securitygroup"
+ZONE_1 = ""
+# Availability zone for DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
+# Example: ZONE = "eu-de-1"
+
+SUBNET_1 = ""
+# The name of an EXISTING Subnet, in the same VPC, ZONE_1, where DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets
+# Example: SUBNET = "ic4sap-subnet_1"
+
+ZONE_2 = ""
+# Availability zone for DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. 
+# If the same value as for ZONE_1 is used, and the value for SUBNET_1 is the same with the value for SUBNET_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then an SAP Multizone deployment will be done.
+# Example: ZONE = "eu-de-2"
+
+SUBNET_2 = ""
+# The name of an EXISTING Subnet, in the same VPC, ZONE_2, where DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. 
+# If the same value as for SUBNET_1 is used, and the value for ZONE_1 is the same with the value for ZONE_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then it an SAP Multizone deployment will be done.
+# Example: SUBNET = "ic4sap-subnet_2"
+
+SECURITY_GROUP = ""
 # The name of an EXISTING Security group for the same VPC. It can be found at the end of the Bastion Server deployment log, in "Outputs", before "Command finished successfully" message.
 # The list of available Security Groups: https://cloud.ibm.com/vpc-ext/network/securityGroups
 # Example: SECURITY_GROUP = "ic4sap-securitygroup"
 
-RESOURCE_GROUP = "wes-automation"
+RESOURCE_GROUP = ""
 # The name of an EXISTING Resource Group, previously created by the user. The list of available Resource Groups: https://cloud.ibm.com/account/resource-groups
 # Example: RESOURCE_GROUP = "wes-automation"
 
-SUBNET = "ic4sap-subnet"
-# The name of an EXISTING Subnet, in the same VPC and ZONE where the VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. 
-# Example: SUBNET = "ic4sap-subnet"
-
-SSH_KEYS = ["r010-8f72b994-c17f-4vf00-af8f-d05680374t3c", "r011-8f72v884-c17f-45bh00-af8f-d05900374t3c"]
+SSH_KEYS = [""]
 # List of SSH Keys UUIDs that are allowed to connect via SSH, as root, to the VSIs. Can contain one or more IDs. The SSH Keys should be created for the same region as the VSIs. The list of available SSH Keys UUIDs: https://cloud.ibm.com/vpc-ext/compute/sshKeys
-# Example: SSH_KEYS = ["r010-8f72b994-c17f-4vf00-af8f-d05680374t3c", "r011-8f72v884-c17f-45bh00-af8f-d05900374t3c"]
+# Example: SSH_KEYS = ["r010-8f72b994-c17f-4500-af8f-d05680374t3c", "r011-8f72v884-c17f-4500-af8f-d05900374t3c"]
 
 ID_RSA_FILE_PATH = "ansible/id_rsa"
 # The path to an existing id_rsa private key file, with 0600 permissions. The private key must be in OpenSSH format.
@@ -391,19 +409,11 @@ APP_PROFILE = "bx2-4x16"
 # The profile for the SAP APP VSIs. The list of available profiles: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles. 
 # For more information, check SAP Note 2927211: "SAP Applications on IBM Virtual Private Cloud"
 
-APP_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-4"
+APP_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-6"
 # The OS image for SAP APP VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions. 
-# Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. 
+# Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-6, ibm-redhat-8-4-amd64-sap-hana-10. 
 # The list of available VPC Operating Systems supported by SAP: SAP note '2927211-SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images"
-# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-7" 
-
-##########################################################
-# Activity Tracker variables:
-##########################################################
-
-ATR_NAME = "Activity-Tracker-SAP-eu-de"
-# The name of the EXISTING Activity Tracker instance, in the same region chosen for SAP system deployment.
-# Example: ATR_NAME="Activity-Tracker-SAP-eu-de"
+# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-10"
 
 ##########################################################
 # SAP system configuration
@@ -443,7 +453,7 @@ KIT_SAPEXEDB_FILE = "/storage/NW75SYB/KERNEL/754UC/SAPEXEDB_200-80007655.SAR"
 KIT_IGSEXE_FILE = "/storage/NW75SYB/KERNEL/754UC/igsexe_2-80007786.sar"
 KIT_IGSHELPER_FILE = "/storage/NW75SYB/igshelper_17-10010245.sar"
 KIT_ASE_FILE = "/storage/NW75SYB/51056521_1_16_0_04_04.ZIP"
-KIT_EXPORT_DIR = "/storage/NW75SYB/EXP"
+KIT_NWABAP_EXPORT_FILE = "/storage/NW75SYB/ABAPEXP/51050829_3.ZIP"
 ```
 
 ## Steps to reproduce:

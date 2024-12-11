@@ -9,7 +9,7 @@ ${var.KIT_SAPEXEDB_FILE}
 ${var.KIT_IGSEXE_FILE}
 ${var.KIT_IGSHELPER_FILE}
 ${var.KIT_ASE_FILE}
-${var.KIT_EXPORT_DIR}/*.*
+${var.KIT_NWABAP_EXPORT_FILE}
     DOC
   filename = "modules/precheck-ssh-exec/sap-paths-${local.DB-HOSTNAME-1}"
 }

@@ -11,6 +11,7 @@
     - hard
   loop_control:
     loop_var: ltype
+  notify: Reboot target host
 
 - name: Set nproc limit for sapsys group
   pam_limits:
@@ -24,6 +25,7 @@
     - hard
   loop_control:
     loop_var: ltype
+  notify: Reboot target host
 
 - name: Set core limits 
   lineinfile:
@@ -34,4 +36,5 @@
     - "* hard core 0"
   loop_control:
     loop_var: corelimit
+  notify: Reboot target host
 ...

@@ -12,5 +12,6 @@
     - { name: kernel.pid_max, value: 4194304 }
     - { name: kernel.sem, value: "32000 1024000000 500 32000" }
   loop_control:
-    loop_var: kernel_param  
+    loop_var: kernel_param
+  notify: Reboot target host
 ...

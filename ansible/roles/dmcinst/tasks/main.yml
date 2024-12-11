@@ -1,16 +1,28 @@
 ---
+- name: Check if SAP ASE Data Movement for HADR feature is installed
+  stat:
+    path: "/sybase/{{ sap_sid | upper }}/DM/sybuninstall"
+  register: dm_stat_result
+
 - name: Generate DMC response file
   template:
-      src: dmc_response_file.cfg
-      dest: "{{ dmc_response_file }}"
+    src: dmc_response_file.cfg
+    dest: "{{ dmc_response_file }}"
+  when: not dm_stat_result.stat.exists
 
 - name: Install DMC
   shell: "{{ asedb_kit }}/setup.bin -f {{ dmc_response_file }} -i silent"
   become: true
   become_user: "syb{{ sap_sid | lower }}"
   become_flags: "-i"
+  when: not dm_stat_result.stat.exists
 
-#Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
+- name: Check if HA was configured
+  stat:
+    path: "/sybase/{{ sap_sid | upper }}/sapdbctrl-config/hb/SYBHA_{{ sap_sid | upper }}.PFL"
+  register: ha_cfg
+
+# Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
 - name: Copy SQL commands
   copy:
     src: unlock_sa.cfg
@@ -18,10 +30,14 @@
     owner: "syb{{ sap_sid | lower }}"
     group: sapsys
     mode: 0775
+  when: not ha_cfg.stat.exists
 
 - name: Unlock sa user
-  shell: "isql -Usapsso -P{{ sap_main_password }} -S{{ sap_sid | upper }} -X -i/usr/sap/kit/unlock_sa.cfg"
+  shell: |
+    set -o pipefail
+    isql -Usapsso -P"$(echo {{ sap_main_password }} | base64 -d)" -S{{ sap_sid | upper }} -X -i/usr/sap/kit/unlock_sa.cfg
   become: true
   become_user: "syb{{ sap_sid | lower }}"
   become_flags: "-i"
+  when: not ha_cfg.stat.exists
 ...

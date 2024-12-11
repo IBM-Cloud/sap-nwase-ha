@@ -1,14 +1,18 @@
 ---
-- name: Configure DB env
+- name: Configure DB env by adding line for HA
   lineinfile:
     dest: "/home/{{ sap_sid | lower }}adm/.dbenv.csh"
     insertbefore: "^\\s*setenv dbs_syb_server {{ sybdb_hostname1 }}"
     line: "setenv dbs_syb_ha 1"
     firstmatch: yes
 
-- name: Configure DB env
-  replace:
-    dest: "/home/{{ sap_sid | lower }}adm/.dbenv.csh"
-    regexp: "^(.*setenv dbs_syb_server {{ sybdb_hostname1 }}.*)$"
-    replace: '\1:{{ sybdb_hostname2 }}'
+- name: Check .dbenv.csh
+  lineinfile:
+    path: "/home/{{ sap_sid | lower }}adm/.dbenv.csh"
+    line: "setenv dbs_syb_server {{ sybdb_hostname1 }}:{{ sybdb_hostname2 }}"
+    state: present
+  check_mode: yes
+  # changed_when: false
+  register: sybdb_presence
+  notify: Configure DB env
 ...

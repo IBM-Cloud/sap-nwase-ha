@@ -1,0 +1,145 @@
+{
+  "profiles": {
+    "default": {
+      "storage": {
+        "data_vg": {
+          "disk_size": "256",
+          "disk_count": "1",
+          "iops": "10iops-tier",
+          "lvm": {
+            "vg": {
+              "vg_name": "<sid>_data_vg"
+            },
+            "lv": [
+              {
+                "lv_name": "<sid>_sybdata_lv",
+                "lv_size": "60",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/data",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sapdata1_lv",
+                "lv_size": "30",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sapdata_1",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sapdata2_lv",
+                "lv_size": "30",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sapdata_2",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sapdata3_lv",
+                "lv_size": "30",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sapdata_3",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sapdata4_lv",
+                "lv_size": "30",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sapdata_4",
+                "mount_options": "defaults"
+              }    
+            ]
+          }
+        },
+        "log_vg": {
+          "disk_size": "32",
+          "disk_count": "1",
+          "iops": "10iops-tier",
+          "lvm": {
+            "vg": {
+              "vg_name": "<sid>_log_vg"
+            },
+            "lv": [
+              {
+                "lv_name": "<sid>_saplog_lv",
+                "lv_size": "28",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/saplog",
+                "mount_options": "defaults"
+              }
+            ]
+          }
+        },
+        "syb_vg": {
+          "disk_size": "64",
+          "disk_count": "1",
+          "iops": "10iops-tier",
+          "lvm": {
+            "vg": {
+              "vg_name": "<sid>_syb_vg"
+            },
+            "lv": [
+              {
+                "lv_name": "<sid>_sapdiag_lv",
+                "lv_size": "8",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sapdiag",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_saptemp_lv",
+                "lv_size": "12",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/saptemp",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sybsecurity_lv",
+                "lv_size": "8",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sybsecurity",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sybsoftware_lv",
+                "lv_size": "8",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sybsystem_lv",
+                "lv_size": "10",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sybsystem",
+                "mount_options": "defaults"
+              },
+              {
+                "lv_name": "<sid>_sybtemp_lv",
+                "lv_size": "8",
+                "fs_type": "xfs",
+                "mount_point": "/sybase/<SID>/sybtemp",
+                "mount_options": "defaults"
+              }
+            ]
+          }
+        },
+        "swap": {
+          "disk_size": "<swap_disk_size>",
+          "disk_count": "1",
+          "iops": "10iops-tier",
+          "lvm": {
+            "vg": {
+              "vg_name": "<sid>_swap_vg"
+            },
+            "lv": [
+              {
+                "lv_name": "<sid>_swap_lv",
+                "lv_size": "100%FREE",
+                "fs_type": "swap"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

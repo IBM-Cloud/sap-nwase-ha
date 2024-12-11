@@ -5,13 +5,16 @@ resource "null_resource" "ansible-exec" {
   }
 
   provisioner "local-exec" {
-     command = "sed -i  's/${var.sap_main_password}/xxxxxxxx/' terraform.tfstate"
+     command = "sed -i  's/${base64encode(var.sap_main_password)}/xxxxxxxx/' terraform.tfstate"
+    }
+
+  provisioner "local-exec" {
+     command = "sed -i  's/${base64encode(var.ha_password)}/xxxxxxxx/' terraform.tfstate"
     }
 
 # Can be disabled for Dev purposes.
   provisioner "local-exec" {
-       command = "sleep 20; rm -rf  ansible/*-vars.yml"
+       command = "sleep 20; rm -rf  ansible/*-vars.yml; rm -f ansible/sapapp_vm_volume_layout.json; rm -f ansible/sybase_vm_volume_layout.json"
       }
 }
-
 

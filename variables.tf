@@ -9,7 +9,7 @@ variable "PRIVATE_SSH_KEY" {
 	validation {
 	condition = length(var.PRIVATE_SSH_KEY) >= 64 && var.PRIVATE_SSH_KEY != null && length(var.PRIVATE_SSH_KEY) != 0 || contains(["n.a"], var.PRIVATE_SSH_KEY )
 	error_message = "The content for private_ssh_key variable must be completed in OpenSSH format."
-      }
+    }
 }
 
 variable "ID_RSA_FILE_PATH" {
@@ -34,7 +34,7 @@ variable "BASTION_FLOATING_IP" {
 	validation {
         condition = can(regex("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",var.BASTION_FLOATING_IP)) || contains(["localhost"], var.BASTION_FLOATING_IP ) && var.BASTION_FLOATING_IP!= null
         error_message = "Incorrect format for variable: BASTION_FLOATING_IP."
-      }
+    }
 }
 
 variable "RESOURCE_GROUP" {
@@ -47,17 +47,8 @@ variable "REGION" {
 	type		= string
 	description	= "The cloud region where to deploy the solution. The regions and zones for VPC are available here: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. Supported locations in IBM Cloud Schematics: https://cloud.ibm.com/docs/schematics?topic=schematics-locations."
 	validation {
-		condition     = contains(["au-syd", "jp-osa", "jp-tok", "eu-de", "eu-gb", "ca-tor", "us-south", "us-east", "br-sao"], var.REGION )
-		error_message = "The REGION must be one of: au-syd, jp-osa, jp-tok, eu-de, eu-gb, ca-tor, us-south, us-east, br-sao."
-	}
-}
-
-variable "ZONE" {
-	type		= string
-	description	= "Availability zone for VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc"
-	validation {
-		condition     = length(regexall("^(au-syd|jp-osa|jp-tok|eu-de|eu-gb|ca-tor|us-south|us-east|br-sao)-(1|2|3)$", var.ZONE)) > 0
-		error_message = "The ZONE is not valid."
+		condition     = contains(["eu-de", "eu-gb", "us-south", "us-east", "ca-tor", "au-syd", "jp-osa", "jp-tok", "eu-es", "br-sao"], var.REGION)
+		error_message = "The REGION must be one of: eu-de, eu-gb, us-south, us-east, ca-tor, au-syd, jp-osa, jp-tok, eu-es, br-sao."
 	}
 }
 
@@ -70,14 +61,42 @@ variable "VPC" {
 	}
 }
 
-variable "SUBNET" {
+variable "ZONE_1" {
 	type		= string
-	description = "The name of an EXISTING Subnet, in the same VPC, region and zone as the VSIs to be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets"
+	description	= "Availability zone for DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc"
 	validation {
-		condition     = length(regexall("^([a-z]|[a-z][-a-z0-9]*[a-z0-9]|[0-9][-a-z0-9]*([a-z]|[-a-z][-a-z0-9]*[a-z0-9]))$", var.SUBNET)) > 0
+		condition     = length(regexall("^(eu-de|eu-gb|us-south|us-east|ca-tor|au-syd|jp-osa|jp-tok|eu-es|br-sao)-(1|2|3)$", var.ZONE_1)) > 0
+		error_message = "The ZONE is not valid."
+	}
+}
+
+variable "SUBNET_1" {
+	type		= string
+	description = "The name of an EXISTING Subnet, in the same VPC, ZONE_1, where DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets"
+	validation {
+		condition     = length(regexall("^([a-z]|[a-z][-a-z0-9]*[a-z0-9]|[0-9][-a-z0-9]*([a-z]|[-a-z][-a-z0-9]*[a-z0-9]))$", var.SUBNET_1)) > 0
 		error_message = "The SUBNET name is not valid."
 	}
 }
+
+variable "ZONE_2" {
+	type		= string
+	description	= "Availability zone for DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. If the same value as for ZONE_1 is used, and the value for SUBNET_1 is the same with the value for SUBNET_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then an SAP Multizone deployment will be done."
+	validation {
+		condition     = length(regexall("^(eu-de|eu-gb|us-south|us-east|ca-tor|au-syd|jp-osa|jp-tok|eu-es|br-sao)-(1|2|3)$", var.ZONE_2)) > 0
+		error_message = "The ZONE is not valid."
+	}
+}
+
+variable "SUBNET_2" {
+	type		= string
+	description = "The name of an EXISTING Subnet, in the same VPC, ZONE_2, where DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. If the same value as for SUBNET_1 is used, and the value for ZONE_1 is the same with the value for ZONE_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then it an SAP Multizone deployment will be done."
+	validation {
+		condition     = length(regexall("^([a-z]|[a-z][-a-z0-9]*[a-z0-9]|[0-9][-a-z0-9]*([a-z]|[-a-z][-a-z0-9]*[a-z0-9]))$", var.SUBNET_2)) > 0
+		error_message = "The SUBNET name is not valid."
+	}
+}
+
 
 variable "SECURITY_GROUP" {
 	type		= string
@@ -151,7 +170,7 @@ variable "DB_PROFILE" {
 variable "DB_IMAGE" {
 	type		= string
 	description = "The OS image for the DB VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions. Supported OS images: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. A list of images is available here: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images."
-	default		= "ibm-redhat-8-6-amd64-sap-hana-4"
+	default		= "ibm-redhat-8-6-amd64-sap-hana-6"
 }
 
 variable "DB_HOSTNAME_1" {
@@ -192,7 +211,7 @@ variable "APP_PROFILE" {
 variable "APP_IMAGE" {
 	type		= string
 	description = "The OS image for SAP APP VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image contains the required SAP and HA subscriptions. Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. The list of available VPC Operating Systems supported by SAP: SAP note '2927211-SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images"
-	default		= "ibm-redhat-8-6-amd64-sap-hana-4"
+	default		= "ibm-redhat-8-6-amd64-sap-hana-6"
 }
 
 variable "APP_HOSTNAME_1" {
@@ -279,6 +298,14 @@ data "ibm_resource_group" "group" {
   name		= var.RESOURCE_GROUP
 }
 
+data "ibm_is_subnet" "subnet_id" {
+  name		=	var.SUBNET_1
+}
+
+data "ibm_is_security_group" "security_group_id" {
+  name = var.SECURITY_GROUP
+}
+
 variable "USRSAP_AS1" {
   description = "File Share Size for USRSAP-AS1, in GB"
   type        = number
@@ -319,16 +346,6 @@ variable "USRSAP_TRANS" {
   description = "File Share Size for USRSAP-TRANS, in GB"
   type        = number
   default = 80
-}
-
-##############################################################
-# The variables used in Activity Tracker service.
-##############################################################
-
-variable "ATR_NAME" {
-  type        = string
-  description = "The name of the EXISTING Activity Tracker instance, in the same region chosen for SAP system deployment. The list of available Activity Tracker is available here: https://cloud.ibm.com/observe/activitytracker"
-  default     = ""
 }
 
 ##############################################################
@@ -388,57 +405,57 @@ variable "SAP_SID" {
 variable "SAP_MAIN_PASSWORD" {
 	type		= string
 	sensitive = true
-	description = "The SAP MAIN Password. Common password for all users that are created during the installation. Must be 8 to 14 characters long, must contain at least one digit (0-9) and one uppercase letter, and must not contain \\ (backslash) and \" (double quote)."
+	description = "The SAP MAIN Password. Common password for all users that are created during the installation. It must be 15 to 30 characters long. It must contain at least: one digit (0-9), one lowercase letter (a-z) and one uppercase letter (A-Z). It may contain one of the following special characters: !, #, $, &, , +, ,, -, ., /, :, =>, @, ^, _, |, ~. It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z)."
 	validation {
-		condition     = length(regexall("^(.{0,9}|.{15,}|[^0-9]*)$", var.SAP_MAIN_PASSWORD)) == 0 && length(regexall("^[^0-9_][0-9a-zA-Z@#$_]+$", var.SAP_MAIN_PASSWORD)) > 0 && length(regexall("[A-Z]", var.SAP_MAIN_PASSWORD)) > 0
-		error_message = "The SAP_MAIN_PASSWORD is not valid."
+		condition = length(var.SAP_MAIN_PASSWORD) >= 15 && length(var.SAP_MAIN_PASSWORD) <= 30 && length(regexall("[0-9]",  var.SAP_MAIN_PASSWORD)) > 0 && length(regexall("[a-z]",  var.SAP_MAIN_PASSWORD)) > 0 && length(regexall("[A-Z]",  var.SAP_MAIN_PASSWORD)) > 0 && can(regex("^[a-zA-Z0-9!#$&*+,-./:=>@^_|~]*$", var.SAP_MAIN_PASSWORD)) && length(regexall("^([a-z]|[A-Z])", var.SAP_MAIN_PASSWORD)) > 0
+		error_message = "The SAP_MAIN_PASSWORD is not valid. It must be 15 to 30 characters long. It must contain at least: one digit (0-9), one lowercase letter (a-z) and one uppercase letter (A-Z). It may contain one of the following special characters: !, #, $, &, , +, ,, -, ., /, :, =>, @, ^, _, |, ~. It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z)."
 	}
 }
 
 variable "HA_PASSWORD" {
 	type		= string
 	sensitive = true
-	description = "The HA Cluster Password. Must be 8 to 14 characters long and contain at least one digit and one uppercase letter. It must not contain \\ (backslash) or \" (double quote)."
+	description = "The HA Cluster Password. It must be 15 to 30 characters long. It must contain at least: one digit (0-9), one lowercase letter (a-z), one uppercase letter (A-Z) and one of the following special characters: !, #, $, %, &, (, ), *, +, ,, -, ., /, :, =, >, @, [, ], ^, _, {, |, }, ~. It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z)."
 	validation {
-		condition     = length(regexall("^(.{0,9}|.{15,}|[^0-9]*)$", var.HA_PASSWORD)) == 0 && length(regexall("^[^0-9_][0-9a-zA-Z@#$_]+$", var.HA_PASSWORD)) > 0
-		error_message = "The HA_PASSWORD is not valid."
+		condition 		= length(var.HA_PASSWORD) >= 15 && length(var.HA_PASSWORD) <= 30 && length(regexall("[0-9]",  var.HA_PASSWORD)) > 0 && length(regexall("[a-z]",  var.HA_PASSWORD)) > 0 && length(regexall("[A-Z]",  var.HA_PASSWORD)) > 0 && can(regex("^[a-zA-Z0-9!#$%&()*+,-./:=>@\\[\\]^_{|}~]*$", var.HA_PASSWORD)) && can(regex("([!#$%&()*+,-./:=>@\\[\\]^_{|}])", var.HA_PASSWORD)) && length(regexall("^([a-z]|[A-Z])", var.HA_PASSWORD)) > 0
+		error_message 	= "The HA_PASSWORD is not valid. It must be 15 to 30 characters long. It must contain at least: one digit (0-9), one lowercase letter (a-z), one uppercase letter (A-Z) and one of the following special characters: !, #, $, %, &, (, ), *, +, ,, -, ., /, :, =, >, @, [, ], ^, _, {, |, }, ~. It must start with a lowercase letter (a-z) or with an uppercase letter (A-Z)."
 	}
 }
 
 variable "KIT_SAPCAR_FILE" {
 	type		= string
 	description = "Path to sapcar binary, as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/SAPCAR_1010-70006178.EXE"
+	default		= "/storage/NW75SYB/SAPCAR/7.53/SAPCAR_1300-70007716.EXE"
 }
 
 variable "KIT_SWPM_FILE" {
 	type		= string
 	description = "Path to SWPM archive (SAR), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/SWPM10SP38_0-20009701.SAR"
+	default		= "/storage/NW75SYB/SWPM10SP42_1-20009701.SAR"
 }
 
 variable "KIT_SAPHOSTAGENT_FILE" {
 	type		= string
 	description = "Path to SAP Host Agent archive (SAR), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/SAPHOSTAGENT61_61-80004822.SAR"
+	default		= "/storage/NW75SYB/SAPHOSTAGENT65_65-80004822.SAR"
 }
 
 variable "KIT_SAPEXE_FILE" {
 	type		= string
 	description = "Path to SAP Kernel OS archive (SAR), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/KERNEL/754UC/SAPEXE_200-80007612.SAR"
+	default		= "/storage/NW75SYB/KERNEL/7.54UC/SAPEXE_400-80007612.SAR"
 }
 
 variable "KIT_SAPEXEDB_FILE" {
 	type		= string
 	description = "Path to SAP Kernel DB archive (SAR), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/KERNEL/754UC/SAPEXEDB_200-80007655.SAR"
+	default		= "/storage/NW75SYB/KERNEL/7.54UC/SAPEXEDB_400-80007655.SAR"
 }
 
 variable "KIT_IGSEXE_FILE" {
 	type		= string
 	description = "Path to IGS archive (SAR), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/KERNEL/754UC/igsexe_2-80007786.sar"
+	default		= "/storage/NW75SYB/KERNEL/7.54UC/igsexe_4-80007786.sar"
 }
 
 variable "KIT_IGSHELPER_FILE" {
@@ -450,32 +467,11 @@ variable "KIT_IGSHELPER_FILE" {
 variable "KIT_ASE_FILE" {
 	type		= string
 	description = "Path to SAP ASE DB archive (ZIP), as downloaded from SAP Support Portal."
-	default		= "/storage/NW75SYB/51056521_1_16_0_04_04.ZIP"
+	default		= "/storage/NW75SYB/ASEBU/51057961_1.ZIP"
 }
 
-variable "KIT_EXPORT_DIR" {
+variable "KIT_NWABAP_EXPORT_FILE" {
 	type		= string
-	description = "Path to Netweaver Installation Export dir. The archives downloaded from SAP Support Portal should be present in this path."
-	default		= "/storage/NW75SYB/EXP"
-}
-
-locals {
-	ATR_ENABLE = true
-}
-
-resource "null_resource" "check_atr_name" {
-  count             = local.ATR_ENABLE == true ? 1 : 0
-  lifecycle {
-    precondition {
-      condition     = var.ATR_NAME != "" && var.ATR_NAME != null
-      error_message = "The name of an EXISTENT Activity Tracker in the same region must be specified."
-    }
-  }
-}
-
-data "ibm_resource_instance" "activity_tracker" {
-  count             = local.ATR_ENABLE == true ? 1 : 0
-  name              = var.ATR_NAME
-  location          = var.REGION
-  service           = "logdnaat"
+	description = "Path to Netweaver Installation Export ZIP file. The archives downloaded from SAP Support Portal should be present in this path."
+	default		= "/storage/NW75SYB/ABAPEXP/51050829_3.ZIP"
 }

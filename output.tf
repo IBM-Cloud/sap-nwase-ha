@@ -44,3 +44,15 @@ output "HADR_USED_PORTS_ON_BOTH_NODES" {
     srs_port              = 4905
   }
 }
+
+output "APP_VSI_STORAGE_LAYOUT" {
+  value = distinct([
+    for stg in module.app-vsi : stg.STORAGE-LAYOUT
+  ])[0]
+}
+
+output "SYBASE_VSI_STORAGE_LAYOUT" {
+  value = distinct([
+    for stg in module.db-vsi : stg.STORAGE-LAYOUT
+  ])[0]
+}

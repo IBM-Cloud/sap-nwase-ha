@@ -1,0 +1,22 @@
+---
+- name: Check for NFS mount directory for PAS instance
+  stat:
+    path: "/usr/sap/{{ sap_sid | upper }}/D{{ sap_ci_instance_number }}"
+  register: pas_nfs_mount
+
+- name: Create directory for NFS mount
+  file:
+    path: "/usr/sap/{{ sap_sid | upper }}/D{{ sap_ci_instance_number }}"
+    state: directory
+    mode: '0775'
+  when: not pas_nfs_mount.stat.exists
+
+- name: Mount nfs file
+  mount:
+    path: "/usr/sap/{{ sap_sid | upper }}/D{{ sap_ci_instance_number }}"
+    src: "{{ as1_mount_path }}"
+    fstype: nfs
+    opts: "rw,hard,rsize=65536,wsize=65536,vers=4.1,sec=sys"
+    state: mounted
+  notify: Reboot target host
+...

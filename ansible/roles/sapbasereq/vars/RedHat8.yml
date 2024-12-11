@@ -9,7 +9,6 @@ sapbase_required_packages:
   - chrony
   - lvm2
   - unzip
-  - compat-sap-c++-10
 
 sapbase_required_configurations:
   - "repository_RHEL"
@@ -24,5 +23,4 @@ sapbase_required_configurations:
   - "abrtd"
   - "kdump"
   - "tmpfiles"
-  - "reboot"
-... 
+...

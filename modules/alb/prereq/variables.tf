@@ -1,16 +1,16 @@
-variable "ZONE" {
-    type = string
-    description = "Cloud Zone"
-}
-
 variable "VPC" {
     type = string
     description = "VPC name"
 }
 
-variable "SUBNET" {
+variable "SUBNET_1" {
     type = string
-    description = "Subnet name"
+    description = "Subnet 1"
+}
+
+variable "SUBNET_2" {
+    type = string
+    description = "Subnet 2"
 }
 
 variable "SECURITY_GROUP" {
@@ -31,8 +31,12 @@ data "ibm_is_security_group" "securitygroup" {
   name		= var.SECURITY_GROUP
 }
 
-data "ibm_is_subnet" "subnet" {
-  name		= var.SUBNET
+data "ibm_is_subnet" "subnet_1" {
+  name		= var.SUBNET_1
+}
+
+data "ibm_is_subnet" "subnet_2" {
+  name		= var.SUBNET_2
 }
 
 data "ibm_resource_group" "group" {

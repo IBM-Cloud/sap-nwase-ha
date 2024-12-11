@@ -16,11 +16,11 @@ variable "kit_swpm_file" {
     }
 }
 
-variable "kit_saphotagent_file" {
+variable "kit_saphostagent_file" {
 	type		= string
-	description = "kit_saphotagent_file"
+	description = "kit_saphostagent_file"
     validation {
-    condition = fileexists("${var.kit_saphotagent_file}") == true
+    condition = fileexists("${var.kit_saphostagent_file}") == true
     error_message = "The PATH  does not exist."
     }
 }
@@ -70,7 +70,11 @@ variable "kit_ase_file" {
     }
 }
 
-variable "kit_export_dir" {
+variable "kit_nwabap_export_file" {
 	type		= string
-	description = "kit_export_dir"
+	description = "kit_nwabap_export_file"
+    validation {
+    condition = fileexists("${var.kit_nwabap_export_file}") == true
+    error_message = "The PATH  does not exist."
+    }
 }

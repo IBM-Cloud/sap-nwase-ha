@@ -1,8 +1,14 @@
 ---
+- name: Check if /usr/sap/kit directory exists on AAS server
+  stat:
+    path: "/usr/sap/kit"
+  register: kit_path_aas
+
 - name: Restart AAS instance
   shell: "sapcontrol -nr {{ sap_aas_instance_number }} -function RestartInstance"
   become: true
   become_method: su
   become_flags: "-"
   become_user: "{{ sap_sid | lower }}adm"
+  when: kit_path_aas.stat.exists
 ...

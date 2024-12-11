@@ -1,8 +1,3 @@
-variable "ZONE" {
-    type = string
-    description = "Cloud Zone"
-}
-
 variable "VPC" {
     type = string
     description = "VPC name"

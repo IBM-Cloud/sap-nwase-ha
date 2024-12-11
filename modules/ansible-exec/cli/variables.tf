@@ -8,6 +8,11 @@ variable "sap_main_password" {
     description = "sap_main_password"
 }
 
+variable "ha_password" {
+    type = string
+    description = "ha_password"
+}
+
 variable "PLAYBOOK" {
     type = string
     description = "SAP Ansible Playbook"

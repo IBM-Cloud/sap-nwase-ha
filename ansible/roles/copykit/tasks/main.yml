@@ -1,0 +1,20 @@
+---
+- name: Check SAP NW ASCS installation status
+  stat:
+    path: "/usr/sap/{{ sap_sid | upper }}/ASCS{{ sap_ascs_instance_number }}/exe/sapstartsrv"
+  register: ascs_stat_result
+  when: inventory_hostname == 'app_iphost1'
+
+- name: Check if the kit files are present in the required location
+  stat:
+    path: "{{ sap_kit }}/swpm/sapinst"
+  register: swpm_status
+
+- name: Set the status globally
+  set_fact:
+    ascs_exist: "{{ hostvars['app_iphost1']['ascs_stat_result'] }}"
+
+- name: Copy kit files
+  include_tasks: "copy_kit.yml"
+  when: not ascs_exist.stat.exists and not swpm_status.stat.exists
+...

@@ -2,10 +2,6 @@ variable "REGION" {
     type = string
     description = "Cloud Region"
 }
-variable "ZONE" {
-    type = string
-    description = "Cloud Zone"
-}
 
 variable "DOMAIN_NAME" {
 	type		= string

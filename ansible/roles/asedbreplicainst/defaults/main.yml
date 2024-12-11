@@ -1,10 +1,10 @@
 ---
-#Sapinst product-id
+# Sapinst product-id
 sap_product_id: "SYB_REP_ENV:NW750.SYB.CP"
 
-#Target files location
+# Target files location
 nwapp_kit: "/usr/sap/kit"
 
-sidadm_uid: 1001
-sapsys_gid: 1002
+sidadm_uid: "1001"
+sapsys_gid: "1002"
 ...

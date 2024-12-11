@@ -6,9 +6,15 @@
     replace: '#\1'
 
 #1054467 - Local host name refers to loopback address
-- name: Disable default hostname resolve to loopback address 
+- name: Disable default hostname resolve to loopback address
   replace:
     path: /etc/hosts
-    regexp: "(.*{{ ansible_hostname }}.*)"
+    regexp: "(^127\\.0\\.0\\.1.*{{ ansible_hostname }}.*)"
+    replace: '#\1'
+
+- name: Disable ipv6 loopback address 
+  replace:
+    path: /etc/hosts
+    regexp: "(^::1.*)"
     replace: '#\1'
 ...

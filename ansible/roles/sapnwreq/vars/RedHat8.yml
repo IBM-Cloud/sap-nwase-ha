@@ -1,8 +1,10 @@
 ---
 nwapp_required_packages:
+  - compat-sap-c++-11
 
 nwapp_required_configurations:
   - "kernel_RedHat8"
   - "limits"
-  - "reboot"
-... 
+  - "reqpkg"
+  - "compatlibs"
+...

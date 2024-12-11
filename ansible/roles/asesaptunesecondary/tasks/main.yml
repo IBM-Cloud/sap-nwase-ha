@@ -1,5 +1,10 @@
 ---
-#Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
+- name: Check if /usr/sap/kit still exists
+  stat:
+    path: /usr/sap/kit
+  register: kit_path
+
+# Using cfg extension due to Schmatics wrongly delete all files from the project with sql extension
 - name: Copy SQL commands
   copy:
     src: sap_tune_rs.cfg
@@ -7,11 +12,15 @@
     owner: "syb{{ sap_sid | lower }}"
     group: sapsys
     mode: 0775
+  when: kit_path.stat.exists
 
 - name: Execute SQL commands
-  shell: "isql -UDR_admin -P{{ sap_main_password }} -S{{ sybdb_hostname2 }}:4909 -X -i/usr/sap/kit/sap_tune_rs.cfg"
+  shell: |
+    set -o pipefail
+    isql -UDR_admin -P"$(echo {{ sap_main_password }} | base64 -d)" -S{{ sybdb_hostname2 }}:4909 -X -i/usr/sap/kit/sap_tune_rs.cfg
   become: true
   become_method: su
   become_flags: "-"
   become_user: "syb{{ sap_sid | lower }}"
+  when: kit_path.stat.exists
 ...

@@ -6,10 +6,6 @@ data "ibm_is_security_group" "securitygroup" {
   name		= var.SECURITY_GROUP
 }
 
-data "ibm_is_subnet" "subnet" {
-  name		= var.SUBNET
-}
-
 data "ibm_resource_group" "group" {
   name		= var.RESOURCE_GROUP
 }
@@ -110,5 +106,3 @@ resource "ibm_is_lb_listener" "sap-frontend" {
   default_pool = ibm_is_lb_pool.sap-backend.pool_id
   idle_connection_timeout = 300
 }
-
-###########

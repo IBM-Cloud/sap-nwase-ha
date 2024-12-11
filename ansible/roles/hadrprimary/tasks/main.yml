@@ -9,15 +9,22 @@
     path: /etc/sysconfig/network-scripts/ifcfg-eth0
     line: "DOMAIN=\"{{ domain_name }}\""
 
+- name: Check if HA was configured on Primary DB
+  stat:
+    path: "/sybase/{{ sap_sid | upper }}/sapdbctrl-config/hb/SYBHA_{{ sap_sid | upper }}.PFL"
+  register: primary_ha_cfg
+
 - name: Restart the network service
   systemd:
     name: NetworkManager.service
     state: restarted
+  when: not primary_ha_cfg.stat.exists
 
 - name: Generate HADR response file
   template:
-      src: setup_hadr.cfg
-      dest: "{{ hadr_response_file }}"
+    src: setup_hadr.cfg
+    dest: "{{ hadr_response_file }}"
+  when: not primary_ha_cfg.stat.exists
 
 - name: Configure HADR on Primary DB
   shell: "setuphadr {{ hadr_response_file }}"
@@ -25,4 +32,5 @@
   become_method: su
   become_flags: "-"
   become_user: "syb{{ sap_sid | lower }}"
+  when: not primary_ha_cfg.stat.exists
 ...

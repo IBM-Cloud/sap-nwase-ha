@@ -6,10 +6,6 @@ REGION = ""
 # The cloud region where to deploy the solution. Supported regions: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
 # Example: REGION = "eu-de"
 
-ZONE = ""
-# Availability zone for VSIs, in the REGION. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
-# Example: ZONE = "eu-de-2"
-
 DOMAIN_NAME = ""
 # The Domain Name for DNS and ALB. 
 # The DOMAIN_NAME value should contain at least one "." as a separator. It is a private domain and is not reachable from the outside world.
@@ -32,6 +28,24 @@ VPC = ""
 # The name of an EXISTING VPC. Must be in the same region as the solution to be deployed. The list of VPCs is available here: https://cloud.ibm.com/vpc-ext/network/vpcs.
 # Example: VPC = "ic4sap"
 
+ZONE_1 = ""
+# Availability zone for DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc
+# Example: ZONE = "eu-de-1"
+
+SUBNET_1 = ""
+# The name of an EXISTING Subnet, in the same VPC, ZONE_1, where DB_HOSTNAME_1 and APP_HOSTNAME_1 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets
+# Example: SUBNET = "ic4sap-subnet_1"
+
+ZONE_2 = ""
+# Availability zone for DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs, in the same VPC. Supported zones: https://cloud.ibm.com/docs/containers?topic=containers-regions-and-zones#zones-vpc. 
+# If the same value as for ZONE_1 is used, and the value for SUBNET_1 is the same with the value for SUBNET_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then an SAP Multizone deployment will be done.
+# Example: ZONE = "eu-de-2"
+
+SUBNET_2 = ""
+# The name of an EXISTING Subnet, in the same VPC, ZONE_2, where DB_HOSTNAME_2 and APP_HOSTNAME_2 VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. 
+# If the same value as for SUBNET_1 is used, and the value for ZONE_1 is the same with the value for ZONE_2, the deployment will be done in a single zone. If the values for ZONE_1, SUBNET_1 are different than the ones for ZONE_2, SUBNET_2 then it an SAP Multizone deployment will be done.
+# Example: SUBNET = "ic4sap-subnet_2"
+
 SECURITY_GROUP = ""
 # The name of an EXISTING Security group for the same VPC. It can be found at the end of the Bastion Server deployment log, in "Outputs", before "Command finished successfully" message.
 # The list of available Security Groups: https://cloud.ibm.com/vpc-ext/network/securityGroups
@@ -40,10 +54,6 @@ SECURITY_GROUP = ""
 RESOURCE_GROUP = ""
 # The name of an EXISTING Resource Group, previously created by the user. The list of available Resource Groups: https://cloud.ibm.com/account/resource-groups
 # Example: RESOURCE_GROUP = "wes-automation"
-
-SUBNET = ""
-# The name of an EXISTING Subnet, in the same VPC and ZONE where the VSIs will be created. The list of Subnets is available here: https://cloud.ibm.com/vpc-ext/network/subnets. 
-# Example: SUBNET = "ic4sap-subnet"
 
 SSH_KEYS = [""]
 # List of SSH Keys UUIDs that are allowed to connect via SSH, as root, to the VSIs. Can contain one or more IDs. The SSH Keys should be created for the same region as the VSIs. The list of available SSH Keys UUIDs: https://cloud.ibm.com/vpc-ext/compute/sshKeys
@@ -90,13 +100,13 @@ DB_PROFILE = "bx2-4x16"
 # The profile for the DB VSI. A list of profiles is available here: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui. 
 # For more information, check SAP Note 2927211: "SAP Applications on IBM Virtual Private Cloud".
 
-DB_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-4"
+DB_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-6"
 # The OS image for the DB VSI. 
 # Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions.
-# Supported OS images: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. 
+# Validated OS images: ibm-redhat-8-6-amd64-sap-hana-6, ibm-redhat-8-4-amd64-sap-hana-10. 
 # The list of available VPC Operating Systems supported by SAP: SAP note '2927211 - SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211
 # A list of images is available here: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images.
-# Example: DB_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-4" 
+# Example: DB_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-10" 
 
 ##########################################################
 # SAP APP VSI variables:
@@ -116,19 +126,11 @@ APP_PROFILE = "bx2-4x16"
 # The profile for the SAP APP VSIs. The list of available profiles: https://cloud.ibm.com/docs/vpc?topic=vpc-profiles. 
 # For more information, check SAP Note 2927211: "SAP Applications on IBM Virtual Private Cloud"
 
-APP_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-4"
+APP_IMAGE = "ibm-redhat-8-6-amd64-sap-hana-6"
 # The OS image for SAP APP VSI. Red Hat Enterprise Linux 8 for SAP HANA (amd64) image must be used for all VMs, as this image type contains the required SAP and HA subscriptions. 
-# Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-4, ibm-redhat-8-4-amd64-sap-hana-7. 
+# Supported OS images for APP VSIs: ibm-redhat-8-6-amd64-sap-hana-6, ibm-redhat-8-4-amd64-sap-hana-10. 
 # The list of available VPC Operating Systems supported by SAP: SAP note '2927211-SAP Applications on IBM Virtual Private Cloud (VPC) Infrastructure environment' https://launchpad.support.sap.com/#/notes/2927211; The list of all available OS images: https://cloud.ibm.com/docs/vpc?topic=vpc-about-images"
-# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-7" 
-
-##########################################################
-# Activity Tracker variables:
-##########################################################
-
-ATR_NAME = ""
-# The name of the EXISTING Activity Tracker instance, in the same region chosen for SAP system deployment.
-# Example: ATR_NAME="Activity-Tracker-SAP-eu-de"
+# Example: APP_IMAGE = "ibm-redhat-8-4-amd64-sap-hana-10" 
 
 ##########################################################
 # SAP system configuration
@@ -160,12 +162,12 @@ SAP_AAS_INSTANCE_NUMBER = "20"
 # SAP Kit Paths
 ##########################################################
 
-KIT_SAPCAR_FILE = "/storage/NW75SYB/SAPCAR_1010-70006178.EXE"
-KIT_SWPM_FILE =  "/storage/NW75SYB/SWPM10SP38_0-20009701.SAR"
-KIT_SAPHOSTAGENT_FILE = "/storage/NW75SYB/SAPHOSTAGENT61_61-80004822.SAR"
-KIT_SAPEXE_FILE = "/storage/NW75SYB/KERNEL/754UC/SAPEXE_200-80007612.SAR"
-KIT_SAPEXEDB_FILE = "/storage/NW75SYB/KERNEL/754UC/SAPEXEDB_200-80007655.SAR"
-KIT_IGSEXE_FILE = "/storage/NW75SYB/KERNEL/754UC/igsexe_2-80007786.sar"
+KIT_SAPCAR_FILE = "/storage/NW75SYB/SAPCAR/7.53/SAPCAR_1300-70007716.EXE"
+KIT_SWPM_FILE =  "/storage/NW75SYB/SWPM10SP42_1-20009701.SAR"
+KIT_SAPHOSTAGENT_FILE = "/storage/NW75SYB/SAPHOSTAGENT65_65-80004822.SAR"
+KIT_SAPEXE_FILE = "/storage/NW75SYB/KERNEL/7.54UC/SAPEXE_400-80007612.SAR"
+KIT_SAPEXEDB_FILE = "/storage/NW75SYB/KERNEL/7.54UC/SAPEXEDB_400-80007655.SAR"
+KIT_IGSEXE_FILE = "/storage/NW75SYB/KERNEL/7.54UC/igsexe_4-80007786.sar"
 KIT_IGSHELPER_FILE = "/storage/NW75SYB/igshelper_17-10010245.sar"
-KIT_ASE_FILE = "/storage/NW75SYB/51056521_1_16_0_04_04.ZIP"
-KIT_EXPORT_DIR = "/storage/NW75SYB/EXP"
+KIT_ASE_FILE = "/storage/NW75SYB/ASEBU/51057961_1.ZIP"
+KIT_NWABAP_EXPORT_FILE = "/storage/NW75SYB/ABAPEXP/51050829_3.ZIP"

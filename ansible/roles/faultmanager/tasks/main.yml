@@ -1,41 +1,16 @@
 ---
-- name: Configure Secure Store
-  shell: "rsecssfx put DB_CONNECT/SYB/SAPADM_USER sapadm -plain"
-  become: true
-  become_method: su
-  become_flags: "-"
-  become_user: "{{ sap_sid | lower }}adm"
-
-- name: Configure Secure Store
-  shell: "rsecssfx put DB_CONNECT/SYB/SAPADM_PASSWORD {{ sap_main_password }}"
-  become: true
-  become_method: su
-  become_flags: "-"
-  become_user: "{{ sap_sid | lower }}adm"
-
-- name: Generate Fault Manager profile
-  template:
-      src: fm_profile.cfg
-      dest: "{{ hadr_profile_path }}"
-      owner: "{{ sap_sid | lower }}adm"
-      group: sapsys
-      mode: 0644
-
-- name: Install Fault Manager
-  shell: "cd /usr/sap/{{ sap_sid | upper }}/SYS/exe/run/ && ./sybdbfm install pf={{ hadr_profile_path }}"
-  become: true
-  become_method: su
-  become_flags: "-"
-  become_user: "{{ sap_sid | lower }}adm"
-
-- name: Restart ASCS cluster resource
-  shell: "pcs resource restart rsc_sap_{{ sap_sid|upper }}_ASCS{{ sap_ascs_instance_number }}"
-
-- name: Remove virtual hostnames to /etc/hosts file
-  blockinfile:
+- name: Check /etc/hosts
+  lineinfile:
     path: /etc/hosts
-    block: |
-      {{ app_iphost1 }} {{ cname_ascs }} {{ cname_ascs }}.{{ domain_name }}
-      {{ app_iphost2 }} {{ cname_ers }} {{ cname_ers }}.{{ domain_name }}
+    line: "{{ app_iphost1 }} {{ cname_ascs }} {{ cname_ascs }}.{{ domain_name }}"
     state: absent
+  check_mode: yes
+  register: presence
+  notify:
+    - Configure Secure Store User
+    - Configure Secure Store Password
+    - Generate Fault Manager profile
+    - Install Fault Manager
+    - Restart ASCS cluster resource
+    - Remove virtual hostnames to /etc/hosts file
 ...

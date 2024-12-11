@@ -1,0 +1,7 @@
+---
+- name: Configure DB env
+  replace:
+    dest: "/home/{{ sap_sid | lower }}adm/.dbenv.csh"
+    regexp: "^(.*setenv dbs_syb_server {{ sybdb_hostname1 }}.*)$"
+    replace: '\1:{{ sybdb_hostname2 }}'
+...

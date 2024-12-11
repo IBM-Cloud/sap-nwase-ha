@@ -1,0 +1,50 @@
+---
+# Target files location
+sap_kit: "/usr/sap/kit"
+
+# On all 4 VSIs: app_iphost1, app_iphost2, sybdb_iphost1, sybdb_iphost2
+sapinst_dirs:
+  - "{{ sap_kit }}"
+  - "{{ sap_kit }}/swpm"
+
+# On app_iphost1, sybdb_iphost1
+sapinst_dirs_export:
+  - "{{ sap_kit }}/export"
+
+# On sybdb_iphost1, sybdb_iphost2
+asedb_dirs:
+  - "{{ sap_kit }}/asedb"
+
+# On all 4 VSIs: app_iphost1, app_iphost2, sybdb_iphost1, sybdb_iphost2
+sap_kits:
+  - sap_kit_src: "{{ kit_sapcar_file }}"
+    sap_kit_dest: "{{ sap_kit }}/sapcar"
+  - sap_kit_src: "{{ kit_swpm_file }}"
+    sap_kit_dest: "{{ sap_kit }}/swpm.sar"
+  - sap_kit_src: "{{ kit_saphostagent_file }}"
+    sap_kit_dest: "{{ sap_kit }}/saphostagent.sar"
+
+# All except app_iphost2: app_iphost1, sybdb_iphost1, sybdb_iphost2
+sap_kits_sapexe:
+  - sap_kit_src: "{{ kit_sapexe_file }}"
+    sap_kit_dest: "{{ sap_kit }}/sapexe.sar"
+  - sap_kit_src: "{{ kit_sapexedb_file }}"
+    sap_kit_dest: "{{ sap_kit }}/sapexedb.sar"
+
+# On app_iphost1, sybdb_iphost1
+sap_kits_export:
+  - sap_kit_src: "{{ kit_nwabap_export_file }}"
+    sap_kit_dest: "{{ sap_kit }}/export/"
+
+# On sybdb1, sybdb2
+sap_kits_ase:
+  - sap_kit_src: "{{ kit_ase_file }}"
+    sap_kit_dest: "{{ sap_kit }}/asedb.zip"
+
+# On app_iphost1
+sap_kits_igs:
+  - sap_kit_src: "{{ kit_igsexe_file }}"
+    sap_kit_dest: "{{ sap_kit }}/igsexe.sar"
+  - sap_kit_src: "{{ kit_igshelper_file }}"
+    sap_kit_dest: "{{ sap_kit }}/igshelper.sar"
+...

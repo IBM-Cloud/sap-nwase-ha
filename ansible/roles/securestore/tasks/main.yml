@@ -1,15 +1,24 @@
 ---
-- name: Configure Secure Store
+- name: Check if /usr/sap/kit still exists
+  stat:
+    path: /usr/sap/kit
+  register: kit_path
+
+- name: Configure Secure Store DR_USER
   shell: "rsecssfx put DB_CONNECT/SYB/DR_USER DR_admin -plain"
   become: true
   become_method: su
   become_flags: "-"
   become_user: "{{ sap_sid | lower }}adm"
+  when: kit_path.stat.exists
 
-- name: Configure Secure Store
-  shell: "rsecssfx put DB_CONNECT/SYB/DR_PASSWORD {{ sap_main_password }}"
+- name: Configure Secure Store DR_PASSWORD
+  shell: |
+    set -o pipefail
+    rsecssfx put DB_CONNECT/SYB/DR_PASSWORD "$(echo {{ sap_main_password }} | base64 -d)"
   become: true
   become_method: su
   become_flags: "-"
   become_user: "{{ sap_sid | lower }}adm"
+  when: kit_path.stat.exists
 ...

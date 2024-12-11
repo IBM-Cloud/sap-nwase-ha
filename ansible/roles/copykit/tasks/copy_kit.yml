@@ -1,0 +1,118 @@
+---
+- name: Create kit files directories on target
+  file:
+    path: "{{ sapinst_dir }}"
+    state: directory
+    mode: 0777
+  loop: "{{ sapinst_dirs }}"
+  loop_control:
+    loop_var: sapinst_dir
+
+- name: Create the export kit directory on target
+  file:
+    path: "{{ sapinst_exp }}"
+    state: directory
+    mode: 0777
+  loop: "{{ sapinst_dirs_export }}"
+  loop_control:
+    loop_var: sapinst_exp
+  when: inventory_hostname == 'app_iphost1' or inventory_hostname == 'sybdb_iphost1'
+
+- name: Create the asedb kit directory on target
+  file:
+    path: "{{ asedb_dir }}"
+    state: directory
+    mode: 0777
+  loop: "{{ asedb_dirs }}"
+  loop_control:
+    loop_var: asedb_dir
+  when: inventory_hostname == 'sybdb_iphost1' or inventory_hostname == 'sybdb_iphost2'
+
+- name: Copy the kit files to /usr/sap/kit
+  copy:
+    src: "{{ kit_item.sap_kit_src }}"
+    dest: "{{ kit_item.sap_kit_dest }}"
+    owner: root
+    group: root
+    mode: 0777
+  loop: "{{ sap_kits }}"
+  loop_control:
+    loop_var: kit_item
+
+- name: Copy sapexe and sapexedb kit files to /usr/sap/kit
+  copy:
+    src: "{{ kit_sapexe_item.sap_kit_src }}"
+    dest: "{{ kit_sapexe_item.sap_kit_dest }}"
+    owner: root
+    group: root
+    mode: 0777
+  loop: "{{ sap_kits_sapexe }}"
+  loop_control:
+    loop_var: kit_sapexe_item
+  when: inventory_hostname != 'app_iphost2'
+
+- name: Copy export kit file to /usr/sap/kit
+  copy:
+    src: "{{ kit_export_item.sap_kit_src }}"
+    dest: "{{ kit_export_item.sap_kit_dest }}"
+    owner: root
+    group: root
+    mode: 0777
+  loop: "{{ sap_kits_export }}"
+  loop_control:
+    loop_var: kit_export_item
+  when: inventory_hostname == 'app_iphost1' or inventory_hostname == 'sybdb_iphost1'
+
+- name: Copy Sybase kit file to /usr/sap/kit
+  copy:
+    src: "{{ kit_ase_item.sap_kit_src }}"
+    dest: "{{ kit_ase_item.sap_kit_dest }}"
+    owner: root
+    group: root
+    mode: 0777
+  loop: "{{ sap_kits_ase }}"
+  loop_control:
+    loop_var: kit_ase_item
+  when: inventory_hostname == 'sybdb_iphost1' or inventory_hostname == 'sybdb_iphost2'
+
+- name: Copy igs kit files to /usr/sap/kit
+  copy:
+    src: "{{ kit_igs_item.sap_kit_src }}"
+    dest: "{{ kit_igs_item.sap_kit_dest }}"
+    owner: root
+    group: root
+    mode: 0777
+  loop: "{{ sap_kits_igs }}"
+  loop_control:
+    loop_var: kit_igs_item
+  when: inventory_hostname == 'app_iphost1'
+
+- name: Check if Export archive content was already extracted
+  stat:
+    path: "{{ sap_kit }}/DATA_UNITS/LABELIDX.ASC"
+  register: expfile_status
+  when: inventory_hostname == 'app_iphost1' or inventory_hostname == 'sybdb_iphost1'
+
+- name: Extract the export ZIP file to target
+  unarchive:
+    src: "{{ sap_kit }}/export/{{ kit_nwabap_export_file.split('/')[-1] }}"
+    dest: "{{ sap_kit }}/export/"
+    remote_src: yes
+  when: (inventory_hostname == 'app_iphost1' or inventory_hostname == 'sybdb_iphost1') and not expfile_status.stat.exists
+
+- name: Extract ASEDB archive
+  unarchive:
+    src: "{{ sap_kit }}/asedb.zip"
+    dest: "{{ sap_kit }}/asedb/"
+    remote_src: yes
+  when: inventory_hostname == 'sybdb_iphost1' or inventory_hostname == 'sybdb_iphost2'
+
+- name: Check if SWPM archive content was already extracted
+  stat:
+    path: "{{ sap_kit }}/swpm/sapinst"
+  register: file_status
+
+- name: Extract SWPM archive
+  command: "{{ sap_kit }}/sapcar -xf {{ sap_kit }}/swpm.sar -R {{ sap_kit }}/swpm"
+  when: not file_status.stat.exists
+...

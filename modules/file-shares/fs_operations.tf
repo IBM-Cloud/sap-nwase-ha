@@ -1,8 +1,8 @@
 ########################### File Share Creation
-##################################################
+###############################################
 
 resource "ibm_is_share" "sap_fs" {
-    access_control_mode = "vpc"
+    access_control_mode = "security_group"
     zone    = var.zone
     resource_group = var.resource_group_id 
     size    = var.share_size
@@ -12,7 +12,12 @@ resource "ibm_is_share" "sap_fs" {
 
 resource "ibm_is_share_mount_target" "mount_target_sap_fs" {
   share = ibm_is_share.sap_fs.id
-  vpc   = var.vpc_id
+  virtual_network_interface {
+    subnet = var.subnet_id
+    name = local.share_name
+    security_groups = ["${var.security_group_id}"]
+    resource_group = var.resource_group_id
+  }
   name  = local.share_name
 }
 

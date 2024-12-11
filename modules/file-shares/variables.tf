@@ -14,6 +14,16 @@ variable "vpc" {
   type        = string
 }
 
+variable "subnet_id" {
+    type = string
+    description = "Subnet ID"
+}
+
+variable "security_group_id" {
+    type = string
+    description = "Security group ID"
+}
+
 variable "region" {
   description = "Please enter a region from the following available region and zones mapping."
   type        = string

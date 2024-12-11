@@ -1,13 +1,19 @@
-- name: nwpasreq.yml
-  ansible.builtin.import_playbook: nwpasreq.yml
-- name: nwaasreq.yml
-  ansible.builtin.import_playbook: nwaasreq.yml
-- name: aseprimaryreq.yml
-  ansible.builtin.import_playbook: aseprimaryreq.yml
-- name: asereplicareq.yml
-  ansible.builtin.import_playbook: asereplicareq.yml
+- name: sharedreq.yml
+  ansible.builtin.import_playbook: sharedreq.yml
+- name: sapappfs.yml
+  ansible.builtin.import_playbook: sapappfs.yml
+- name: pasfs.yml
+  ansible.builtin.import_playbook: pasfs.yml
+- name: aasfs.yml
+  ansible.builtin.import_playbook: aasfs.yml
+- name: nwclusterreq.yml
+  ansible.builtin.import_playbook: nwclusterreq.yml
+- name: aseprereq.yml
+  ansible.builtin.import_playbook: aseprereq.yml
 - name: sapclustersetup.yml
   ansible.builtin.import_playbook: sapclustersetup.yml
+- name: copykit.yml
+  ansible.builtin.import_playbook: copykit.yml
 - name: ascsclusterinst.yml
   ansible.builtin.import_playbook: ascsclusterinst.yml
 - name: ersclusterinst.yml
